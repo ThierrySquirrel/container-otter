@@ -1,152 +1,109 @@
-# otter-spring-boot-starter  
+# container-otter
 
-Otter Spring Book Edition  
+Otter
 
-[中文](./README_zh_CN.md)  
+[中文](./README_zh_CN.md)
 
-Support Function：  
-- [x] Ensure Call Consistency  
+Support Function：
 
-# Ensure Call Consistency：  
+- [x] Ensure Call Consistency
 
-  Before Using, Make Sure That The Call Link Is Idempotent  
-  Simple Explanation: Service A Calls Service B, Service B Calls Service C,   
-  in the link, B and C execute successfully     
-  A Execute Exception, Then The Data Is Inconsistent   
-  The Otter Will Try To Call The Link Again  
-  Service A Calls Service B, And Service B Calls Service C  
-  If The Link Call Is Successful, The Data Is Consistent  
-  
-## Quick Start  
+# Ensure Call Consistency：
+
+Before Using, Make Sure That The Call Link Is Idempotent  
+Simple Explanation: Service A Calls Service B, Service B Calls Service C,   
+in the link, B and C execute successfully     
+A Execute Exception, Then The Data Is Inconsistent   
+The Otter Will Try To Call The Link Again  
+Service A Calls Service B, And Service B Calls Service C  
+If The Link Call Is Successful, The Data Is Consistent
+
+## Quick Start
 
 ```xml
 <!--Adding dependencies to pom. XML-->
-        <dependency>
-            <artifactId>otter-spring-boot-starter</artifactId>
-            <groupId>io.github.thierrysquirrel</groupId>
-            <version>2.2.0.1-RELEASE</version>
-        </dependency>
+<dependency>
+    <artifactId>container-otter-loading</artifactId>
+    <groupId>io.github.thierrysquirrel</groupId>
+    <version>1.0.0.0-RELEASE</version>
+</dependency>
 ```  
 
-# Start Using  
+# Start Using
 
 ```java
-@RestController
+
+@ScannerPackage(packageName = "com.hello.world.web.otter")
+
+public class OtterRegistrationImpl implements InterfaceManualRegistration {
+    @Override
+    public void scannerAll(List<Class<?>> scannerClassList, Map<Class<?>, Object> registrationMap) {
+        OtterRegistration.otterRegistrationScannerAll(scannerClassList, registrationMap);
+    }
+}
+```
+
+```java
+
 @Otter
-public class Demo {
-	
-    @Resource
-	public FeignService feignService;
+public class OtterDemo {
 
-	@Reference
-	private DubboService dubboService;
+    @Set
+    public HttpService httpService;
 
-    @Resource
-    private ButterService butterService;
-
-    @GetMapping("/local")
-    public String local(){
+    @Repair
+    public Object helloWorld() {
+        System.out.println("OtterDemo HelloWorld");
         //Local SQL Execution
+        return "HelloWorld";
+    }
+
+    @Repair
+    public Object helloHttp() {
+        httpService.update();
+        System.out.println("helloHttp");
+        //Local SQL Execution
+        return "http";
+    }
+}
+```
+
+```java
+
+@Http("/web")
+public class Demo {
+
+    @Set
+    private OtterDemo otterDemo;
+
+    @Get("/local")
+    public String local() {
+        otterDemo.helloWorld();
         return "local";
     }
 
-	@Repair
-	@GetMapping("/feign")
-	public String feign() {
-        feignService.update();
-        //Local SQL Execution
-		return "feign";
-	}
-
-    @Repair
-	@GetMapping("/dubbo")
-	public String dubbo() {
-        dubboService.update();
-        //Local SQL Execution
-		return "dubbo";
-	}
-
-    @Repair
-	@GetMapping("/butter")
-	public String butter() {
-        butterService.update();
-        //Local SQL Execution
-		return "butter";
-	}
-
+    @Get("/http")
+    public String feign() {
+        otterDemo.helloHttp();
+        return "http";
+    }
 }
 ```
 
-# Add Feign Support
+# If HTTP supports
 
 ```java
-@Component
-public class OtterFeignRequestInterceptor implements RequestInterceptor {
-
-	@Override
-	public void apply(RequestTemplate template) {
-		Optional<Long> globalId = Optional.ofNullable(GlobalIdUtils.getId());
-		globalId.ifPresent(id -> template.header(InterceptorConstant.INTERCEPTOR_IDENTIFIER, String.valueOf(id)));
-	}
-}
-
-@Component
-public class OtterOncePerRequestFilter extends OncePerRequestFilter {
-
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-		Optional<String> globalId = Optional.ofNullable(request.getHeader(InterceptorConstant.INTERCEPTOR_IDENTIFIER));
-		globalId.ifPresent(id -> GlobalIdUtils.setId(Long.valueOf(id)));
-		filterChain.doFilter(request, response);
-	}
-}
-```
-
-# Add dubbo-spring-boot-starter Support
-
-```java
-@Activate(group = CommonConstants.CONSUMER)
-public class OtterDubboConsumerFilter implements Filter {
-
-    @Override
-    public Result invoke(Invoker<?> invoker, Invocation invocation) {
+public class HttpInterceptor {
+    public void before(HttpTemplate httpTemplate) {
         Optional<Long> globalId = Optional.ofNullable(GlobalIdUtils.getId());
-        globalId.ifPresent(id -> RpcContext.getContext().setAttachment(InterceptorConstant.INTERCEPTOR_IDENTIFIER, String.valueOf(id)));
-        return invoker.invoke(invocation);
+        globalId.ifPresent(id -> httpTemplate.header(InterceptorConstant.INTERCEPTOR_IDENTIFIER, String.valueOf(id)));
     }
-}
 
-@Activate(group = CommonConstants.PROVIDER)
-public class OtterDubboProviderFilter implements Filter {
-
-    @Override
-    public Result invoke(Invoker<?> invoker, Invocation invocation) {
-        Optional<Object> globalId = Optional.ofNullable(RpcContext.getContext().getAttachment(InterceptorConstant.INTERCEPTOR_IDENTIFIER));
-        globalId.ifPresent(id -> GlobalIdUtils.setId((Long.valueOf(String.valueOf(id)))));
-        return invoker.invoke(invocation);
+    public void after(HttpTemplate httpTemplate) {
+        Optional<String> globalId = Optional.ofNullable(httpTemplate.getHeader(InterceptorConstant.INTERCEPTOR_IDENTIFIER));
+        globalId.ifPresent(id -> GlobalIdUtils.setId(Long.valueOf(id)));
+        httpTemplate.doFilter();
     }
-}
-```
-
-# Add butter Support
-
-```java
-@ButterflyFilter
-public class ButterConsumerFilter implements Filter {
-	@Override
-	public void filter(PineRequestContextFilterDomain pineRequestContextFilterDomain) {
-		Optional<Long> globalId = Optional.ofNullable(GlobalIdUtils.getId());
-		globalId.ifPresent(id -> pineRequestContextFilterDomain.setAttachment(InterceptorConstant.INTERCEPTOR_IDENTIFIER, String.valueOf(id)));
-	}
-}
-
-@FlowerFilter
-public class ButterProducerFilter implements Filter {
-	@Override
-	public void filter(PineRequestContextFilterDomain pineRequestContextFilterDomain) {
-		Optional<String> globalId = Optional.ofNullable(pineRequestContextFilterDomain.getAttachment(InterceptorConstant.INTERCEPTOR_IDENTIFIER));
-		globalId.ifPresent(id -> GlobalIdUtils.setId((Long.valueOf(id))));
-	}
 }
 ```
 

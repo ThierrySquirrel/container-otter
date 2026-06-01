@@ -5,24 +5,23 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.thierrysquirrel</groupId>
-    <artifactId>otter-spring-boot</artifactId>
+    <artifactId>container-otter</artifactId>
     <packaging>pom</packaging>
-    <version>2.2.0.1-RELEASE</version>
+    <version>1.0.0.0-RELEASE</version>
 
-    <name>otter-spring-boot</name>
-    <description>otter-spring-boot</description>
-    <url>https://github.com/ThierrySquirrel/otter-spring-boot</url>
+    <name>container-otter</name>
+    <description>container-otter</description>
+    <url>https://github.com/ThierrySquirrel/container-otter</url>
 
     <modules>
-        <module>otter-spring-boot-starter</module>
-        <module>otter-spring-boot-autoconfigure</module>
+        <module>container-otter-loading</module>
     </modules>
 
     <properties>
-        <java.version>11</java.version>
-        <spring-boot-starter.version>2.7.18</spring-boot-starter.version>
-        <lombok.version>1.18.42</lombok.version>
-        <guava.version>33.5.0-jre</guava.version>
+        <java.version>25</java.version>
+        <guava.version>33.6.0-jre</guava.version>
+        <byte-buddy.version>1.18.8</byte-buddy.version>
+        <container.version>1.0.0.3-RELEASE</container.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
@@ -32,43 +31,23 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter</artifactId>
-                <version>${spring-boot-starter.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-autoconfigure</artifactId>
-                <version>${spring-boot-starter.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-configuration-processor</artifactId>
-                <version>${spring-boot-starter.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-aop</artifactId>
-                <version>${spring-boot-starter.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.github.thierrysquirrel</groupId>
-                <artifactId>otter-spring-boot-starter</artifactId>
-                <version>${project.version}</version>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>${byte-buddy.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.thierrysquirrel</groupId>
-                <artifactId>otter-spring-boot-autoconfigure</artifactId>
+                <artifactId>container</artifactId>
+                <version>${container.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.thierrysquirrel</groupId>
+                <artifactId>container-otter-loading</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
@@ -94,9 +73,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:https://github.com/ThierrySquirrel/otter-spring-boot.git</connection>
-        <developerConnection>scm:git:https://github.com/ThierrySquirrel/otter-spring-boot.git</developerConnection>
-        <url>https://github.com/ThierrySquirrel/otter-spring-boot</url>
+        <connection>scm:git:https://github.com/ThierrySquirrel/container-otter.git</connection>
+        <developerConnection>scm:git:https://github.com/ThierrySquirrel/container-otter.git</developerConnection>
+        <url>https://github.com/ThierrySquirrel/container-otter</url>
         <tag>v${project.version}</tag>
     </scm>
 
@@ -116,6 +95,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc-plugin.version}</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
