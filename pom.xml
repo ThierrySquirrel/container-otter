@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>25</java.version>
-        <guava.version>33.6.0-jre</guava.version>
+        <guava.version>33.7.1-jre</guava.version>
         <byte-buddy.version>1.18.8</byte-buddy.version>
         <container.version>1.0.0.3-RELEASE</container.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
